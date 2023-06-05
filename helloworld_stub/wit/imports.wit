@@ -1,0 +1,3 @@
+world helloworld-imports {
+import hello-world: pkg.decls.hello-world
+}

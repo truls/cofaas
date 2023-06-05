@@ -1,0 +1,18 @@
+default world producer-interface {
+
+export hello-world: interface {
+
+ //use pkg.types.{errno}
+
+record hello-request {
+    name: string
+  }
+
+record hello-reply {
+   message: string
+}
+
+  say-hello: func(reqyest: hello-request) -> result<hello-reply, s32>
+}
+
+}
