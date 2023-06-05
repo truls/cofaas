@@ -8,7 +8,7 @@ package prodcon
 
 import (
 	context "context"
-	//grpc "github.com/truls/chained-service-example/grpc_stub"
+	//grpc "github.com/truls/chained-service-example/stubs/grpc"
 	//grpc "google.golang.org/grpc"
 )
 

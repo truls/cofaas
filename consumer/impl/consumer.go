@@ -30,10 +30,10 @@ import (
 	//storage "github.com/vhive-serverless/vSwarm/utils/storage/go"
 	"io"
 	"os"
-	net "github.com/truls/chained-service-example/net_stub"
+	net "github.com/truls/chained-service-example/stubs/net"
 	//"net"
 	//"google.golang.org/grpc"
-	grpc "github.com/truls/chained-service-example/grpc_stub"
+	grpc "github.com/truls/chained-service-example/stubs/grpc"
 	pb "github.com/truls/chained-service-example/prodcon_stub"
 
 )

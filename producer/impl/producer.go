@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package producer
+package impl
 
 import (
 	"context"
@@ -29,7 +29,7 @@ import (
 	//storage "github.com/vhive-serverless/vSwarm/utils/storage/go"
 	"math/rand"
 	//"net"
-	net "github.com/truls/chained-service-example/net_stub"
+	net "github.com/truls/chained-service-example/stubs/net"
 	"os"
 	"strconv"
 
@@ -46,7 +46,7 @@ import (
 	pb "github.com/truls/chained-service-example/helloworld_stub"
 
 	//tracing "github.com/vhive-serverless/vSwarm/utils/tracing/go"
-	grpc "github.com/truls/chained-service-example/grpc_stub"
+	grpc "github.com/truls/chained-service-example/stubs/grpc"
 )
 
 type producerServer struct {

@@ -1,3 +1,3 @@
-module net_stub
+module stubs/net
 
 go 1.20

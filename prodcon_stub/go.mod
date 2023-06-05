@@ -2,7 +2,7 @@ module github.com/truls/chained-service-example/prodcon_stub
 
 go 1.20
 
-replace github.com/truls/chained-service-example/grpc_stub => ../grpc_stub
+replace github.com/truls/chained-service-example/stubs/grpc => ../../stubs/grpc
 
 require google.golang.org/grpc v1.53.0
 

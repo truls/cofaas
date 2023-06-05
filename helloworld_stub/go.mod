@@ -3,7 +3,7 @@ module github.com/truls/chained-service-example/helloworld_stub
 go 1.20
 
 require (
-	github.com/truls/chained-service-example/grpc_stub v0.0.0-00010101000000-000000000000
+	github.com/truls/chained-service-example/stubs/grpc v0.0.0-00010101000000-000000000000
 	google.golang.org/grpc v1.55.0
 	google.golang.org/protobuf v1.30.0
 )
@@ -16,4 +16,4 @@ require (
 	google.golang.org/genproto v0.0.0-20230306155012-7f2fa6fef1f4 // indirect
 )
 
-replace github.com/truls/chained-service-example/grpc_stub => ../grpc_stub
+replace github.com/truls/chained-service-example/stubs/grpc => ../stubs/grpc
