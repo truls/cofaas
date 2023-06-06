@@ -1,4 +1,6 @@
-default world producer-interface {
+package producer:host
+
+world producer-interface {
 
 export hello-world: interface {
 
@@ -13,6 +15,7 @@ record hello-reply {
 }
 
   say-hello: func(reqyest: hello-request) -> result<hello-reply, s32>
+  init-component: func()
 }
 
 }

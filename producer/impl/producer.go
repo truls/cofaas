@@ -35,10 +35,9 @@ import (
 
 	//sdk "github.com/ease-lab/vhive-xdt/sdk/golang"
 	///"github.com/ease-lab/vhive-xdt/utils"
-	"google.golang.org/grpc/credentials/insecure"
+	//"google.golang.org/grpc/credentials/insecure"
 
-	ctrdlog "github.com/containerd/containerd/log"
-	log "github.com/sirupsen/logrus"
+	//log "github.com/sirupsen/logrus"
 	//"google.golang.org/grpc/reflection"
 
 	pb_client "github.com/truls/chained-service-example/prodcon_stub"
@@ -72,10 +71,12 @@ func getGRPCclient(addr string) (pb_client.ProducerConsumerClient, *grpc.ClientC
 	// if tracing.IsTracingEnabled() {
 	// 	conn, err = tracing.DialGRPCWithUnaryInterceptor(addr, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	// } else {
-		conn, err = grpc.Dial(addr, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	//conn, err = grpc.Dial(addr, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+		conn, err = grpc.Dial(addr, grpc.WithBlock(), grpc.WithTransportCredentials(nil))
 	//}
 	if err != nil {
-		log.Fatalf("[producer] fail to dial: %s", err)
+		fmt.Printf("[producer] fail to dial: %s", err)
+		os.Exit(1)
 	}
 	return pb_client.NewProducerConsumerClient(conn), conn
 }
@@ -87,9 +88,10 @@ func (ps *producerServer) SayHello(ctx context.Context, req *pb.HelloRequest) (_
 	payloadToSend := ps.payloadData
 	ack, err := client.ConsumeByte(ctx, &pb_client.ConsumeByteRequest{Value: payloadToSend})
 	if err != nil {
-		log.Fatalf("[producer] client error in string consumption: %s", err)
+		fmt.Printf("[producer] client error in string consumption: %s", err)
+		os.Exit(1)
 	}
-	log.Printf("[producer] (single) Ack: %v\n", ack.Value)
+	fmt.Printf("[producer] (single) Ack: %v\n", ack.Value)
 	return &pb.HelloReply{Message: "Success"}, err
 }
 
@@ -101,11 +103,6 @@ func Main() {
 	//dockerCompose := flag.Bool("dockerCompose", false, "Env docker Compose?")
 	flag.Parse()
 
-	log.SetFormatter(&log.TextFormatter{
-		TimestampFormat: ctrdlog.RFC3339NanoFixed,
-		FullTimestamp:   true,
-	})
-	log.SetOutput(os.Stdout)
 
 	// if tracing.IsTracingEnabled() {
 	// 	log.Println("producer has tracing enabled")
@@ -115,7 +112,7 @@ func Main() {
 	// 	}
 	// 	defer shutdown()
 	// } else {
-		log.Println("producer has tracing DISABLED")
+		fmt.Println("producer has tracing DISABLED")
 	// }
 
 	var grpcServer *grpc.Server
@@ -126,16 +123,16 @@ func Main() {
 	// }
 
 	//client setup
-	log.Printf("[producer] Client using address: %v:%d\n", *flagAddress, *flagClientPort)
+	fmt.Printf("[producer] Client using address: %v:%d\n", *flagAddress, *flagClientPort)
 
 	ps := producerServer{consumerAddr: *flagAddress, consumerPort: *flagClientPort}
 
 	transferType, ok := os.LookupEnv("TRANSFER_TYPE")
 	if !ok {
-		log.Infof("TRANSFER_TYPE not found, using INLINE transfer")
+		fmt.Printf("TRANSFER_TYPE not found, using INLINE transfer")
 		transferType = INLINE
 	}
-	log.Infof("[producer] transfering via %s", transferType)
+	fmt.Printf("[producer] transfering via %s", transferType)
 	ps.transferType = transferType
 
 	transferSizeKB := 4095
@@ -143,18 +140,19 @@ func Main() {
 		if intValue, err := strconv.Atoi(value); err == nil {
 			transferSizeKB = intValue
 		} else {
-			log.Infof("invalid TRANSFER_SIZE_KB: %s, using default %d", value, transferSizeKB)
+			fmt.Printf("invalid TRANSFER_SIZE_KB: %s, using default %d", value, transferSizeKB)
 		}
 	}
 
 	// 4194304 bytes is the limit by gRPC
 	payloadData := make([]byte, transferSizeKB*1024)
 	if _, err := rand.Read(payloadData); err != nil {
-		log.Fatal(err)
+		fmt.Print(err, "\n")
+		os.Exit(1)
 	}
 	ps.randomStr = os.Getenv("HOSTNAME")
 
-	log.Infof("sending %d bytes to consumer", len(payloadData))
+	fmt.Printf("sending %d bytes to consumer", len(payloadData))
 	ps.payloadData = payloadData
 	pb.RegisterGreeterServer(grpcServer, &ps)
 	//reflection.Register(grpcServer)
@@ -163,13 +161,15 @@ func Main() {
 	// TODO: Handle this
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *flagServerPort))
 	if err != nil {
-		log.Fatalf("[producer] failed to listen: %v", err)
+		fmt.Printf("[producer] failed to listen: %v", err)
+		os.Exit(1)
 	}
 
-	log.Println("[producer] Server Started")
+	fmt.Println("[producer] Server Started")
 
 	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("[producer] failed to serve: %s", err)
+		fmt.Printf("[producer] failed to serve: %s", err)
+		os.Exit(1)
 	}
 
 }

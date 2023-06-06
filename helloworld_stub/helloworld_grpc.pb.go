@@ -20,6 +20,8 @@ type GreeterClient interface {
 	SayHelloStreamReply(ctx context.Context, in *HelloRequest, opts ...interface{}) (Greeter_SayHelloStreamReplyClient, error)
 }
 
+var Implementation GreeterServer = UnimplementedGreeterServer{}
+
 type greeterClient struct {
 }
 
@@ -110,6 +112,7 @@ type UnsafeGreeterServer interface {
 }
 
 func RegisterGreeterServer(s interface{}, srv GreeterServer) {
+	Implementation = srv
 	//s.RegisterService(&Greeter_ServiceDesc, srv)
 }
 
