@@ -8,8 +8,7 @@ package helloworld
 
 import (
 	context "context"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
+	"errors"
 )
 
 // GreeterClient is the client API for Greeter service.
@@ -96,10 +95,10 @@ type UnimplementedGreeterServer struct {
 }
 
 func (UnimplementedGreeterServer) SayHello(context.Context, *HelloRequest) (*HelloReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SayHello not implemented")
+	return nil, errors.New("method SayHello not implemented")
 }
 func (UnimplementedGreeterServer) SayHelloStreamReply(*HelloRequest, Greeter_SayHelloStreamReplyServer) error {
-	return status.Errorf(codes.Unimplemented, "method SayHelloStreamReply not implemented")
+	return errors.New("method SayHelloStreamReply not implemented")
 }
 func (UnimplementedGreeterServer) mustEmbedUnimplementedGreeterServer() {}
 
