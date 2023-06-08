@@ -24,7 +24,6 @@ package impl
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	//storage "github.com/vhive-serverless/vSwarm/utils/storage/go"
 	"math/rand"
@@ -96,12 +95,16 @@ func (ps *producerServer) SayHello(ctx context.Context, req *pb.HelloRequest) (_
 }
 
 func Main() {
-	flagAddress := flag.String("addr", "consumer.default.192.168.1.240.sslip.io", "Server IP address")
-	flagClientPort := flag.Int("pc", 80, "Client Port")
-	flagServerPort := flag.Int("ps", 80, "Server Port")
-	//url := flag.String("zipkin", "http://zipkin.istio-system.svc.cluster.local:9411/api/v2/spans", "zipkin url")
-	//dockerCompose := flag.Bool("dockerCompose", false, "Env docker Compose?")
-	flag.Parse()
+	// flagAddress := flag.String("addr", "consumer.default.192.168.1.240.sslip.io", "Server IP address")
+	// flagClientPort := flag.Int("pc", 80, "Client Port")
+	// flagServerPort := flag.Int("ps", 80, "Server Port")
+	// //url := flag.String("zipkin", "http://zipkin.istio-system.svc.cluster.local:9411/api/v2/spans", "zipkin url")
+	// //dockerCompose := flag.Bool("dockerCompose", false, "Env docker Compose?")
+	// flag.Parse()
+
+	flagAddress := "consumer.default.192.168.1.240.sslip.io"
+	flagClientPort := 80
+	flagServerPort := 80
 
 
 	// if tracing.IsTracingEnabled() {
@@ -123,9 +126,9 @@ func Main() {
 	// }
 
 	//client setup
-	fmt.Printf("[producer] Client using address: %v:%d\n", *flagAddress, *flagClientPort)
+	fmt.Printf("[producer] Client using address: %v:%d\n", flagAddress, flagClientPort)
 
-	ps := producerServer{consumerAddr: *flagAddress, consumerPort: *flagClientPort}
+	ps := producerServer{consumerAddr: flagAddress, consumerPort: flagClientPort}
 
 	transferType, ok := os.LookupEnv("TRANSFER_TYPE")
 	if !ok {
@@ -135,17 +138,17 @@ func Main() {
 	fmt.Printf("[producer] transfering via %s", transferType)
 	ps.transferType = transferType
 
-	transferSizeKB := 4095
+	transferSize := 10
 	if value, ok := os.LookupEnv("TRANSFER_SIZE_KB"); ok {
 		if intValue, err := strconv.Atoi(value); err == nil {
-			transferSizeKB = intValue
+			transferSize = intValue
 		} else {
-			fmt.Printf("invalid TRANSFER_SIZE_KB: %s, using default %d", value, transferSizeKB)
+			fmt.Printf("invalid TRANSFER_SIZE_KB: %s, using default %d", value, transferSize)
 		}
 	}
 
 	// 4194304 bytes is the limit by gRPC
-	payloadData := make([]byte, transferSizeKB*1024)
+	payloadData := make([]byte, transferSize)
 	if _, err := rand.Read(payloadData); err != nil {
 		fmt.Print(err, "\n")
 		os.Exit(1)
@@ -159,7 +162,7 @@ func Main() {
 
 	//server setup
 	// TODO: Handle this
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *flagServerPort))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", flagServerPort))
 	if err != nil {
 		fmt.Printf("[producer] failed to listen: %v", err)
 		os.Exit(1)

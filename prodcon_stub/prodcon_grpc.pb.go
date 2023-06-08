@@ -25,12 +25,30 @@ type ProducerConsumerClient interface {
 	ConsumeStream(ctx context.Context, opts ...interface{}) (ProducerConsumer_ConsumeStreamClient, error)
 }
 
+type unimplementedProducerConsumerClient struct {}
+
+func (unimplementedProducerConsumerClient) ConsumeByte(ctx context.Context, in *ConsumeByteRequest, opts ...interface{}) (*ConsumeByteReply, error) {
+	return nil, nil
+}
+
+func (unimplementedProducerConsumerClient) ConsumeStream(ctx context.Context, opts ...interface{}) (ProducerConsumer_ConsumeStreamClient, error) {
+	return nil, nil
+}
+
+
+var Implementation ProducerConsumerServer = UnimplementedProducerConsumerServer{}
+var clientImplementation ProducerConsumerClient = unimplementedProducerConsumerClient{}
+
 type producerConsumerClient struct {
 	//cc grpc.ClientConnInterface
 }
 
 func NewProducerConsumerClient(cc interface{}) ProducerConsumerClient {
-	return &producerConsumerClient{}
+	return clientImplementation
+}
+
+func SetProducerConsumerClientImplementation(impl ProducerConsumerClient) {
+	clientImplementation = impl
 }
 
 type ConsumeByteRequest struct {
@@ -100,6 +118,7 @@ type UnimplementedProducerConsumerServer struct {
 }
 
 func (UnimplementedProducerConsumerServer) ConsumeByte(context.Context, *ConsumeByteRequest) (*ConsumeByteReply, error) {
+	panic("ConsumeByte not implemented")
 	return nil, nil//status.Errorf(codes.Unimplemented, "method ConsumeByte not implemented")
 }
 func (UnimplementedProducerConsumerServer) ConsumeStream(ProducerConsumer_ConsumeStreamServer) error {
@@ -115,6 +134,7 @@ type UnsafeProducerConsumerServer interface {
 }
 
 func RegisterProducerConsumerServer(s interface{}, srv ProducerConsumerServer) {
+	Implementation = srv
 	//s.RegisterService(&ProducerConsumer_ServiceDesc, srv)
 }
 

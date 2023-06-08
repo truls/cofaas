@@ -5,6 +5,6 @@ edition = "2021"
 
 [dependencies]
 tokio = { version = "1.28.2", features = ["full"] }
-wasi-common = { version = "10.0.0", path = "../wasmtime/crates/wasi-common" }
-wasmtime = { version = "10.0.0", path = "../wasmtime/crates/wasmtime", features = ["component-model"] }
-wasmtime-wasi = { version = "10.0.0", path = "../wasmtime/crates/wasi", features = ["tokio", "wasi-tokio"] }
+wasi-common = { version = "10.0.0", path = "../deps/wasmtime/crates/wasi-common" }
+wasmtime = { version = "10.0.0", path = "../deps/wasmtime/crates/wasmtime", features = ["component-model"] }
+wasmtime-wasi = { version = "10.0.0", path = "../deps/wasmtime/crates/wasi", features = ["tokio", "wasi-tokio"] }

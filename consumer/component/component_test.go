@@ -2,7 +2,7 @@ package main
 
 import (
 	"testing"
-	gen "github.com/truls/chained-service-example/producer/component/gen" )
+	gen "github.com/truls/chained-service-example/consumer/component/gen" )
 
 
 func TestSayHello_Wrapper(t *testing.T) {

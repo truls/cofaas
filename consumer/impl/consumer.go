@@ -20,12 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package main
+package impl
 
 import (
 	"context"
 	//"errors"
-	"flag"
 	"fmt"
 	//storage "github.com/vhive-serverless/vSwarm/utils/storage/go"
 	"io"
@@ -58,7 +57,7 @@ func (s *consumerServer) ConsumeByte(ctx context.Context, str *pb.ConsumeByteReq
 	// 	defer span1.EndSpan()
 	// 	defer span2.EndSpan()
 	// }
-		fmt.Printf("[consumer] Consumed %d bytes\n", len(str.Value))
+	fmt.Printf("[consumer] Consumed %d bytes\n", len(str.Value))
 	return &pb.ConsumeByteReply{Value: true}, nil
 }
 
@@ -75,10 +74,11 @@ func (s *consumerServer) ConsumeStream(stream pb.ProducerConsumer_ConsumeStreamS
 	}
 }
 
-func main() {
-	port := flag.Int("ps", 80, "Port")
+func Main() {
+	// port := flag.Int("ps", 80, "Port")
 	//url := flag.String("zipkin", "http://zipkin.istio-system.svc.cluster.local:9411/api/v2/spans", "zipkin url")
-	flag.Parse()
+	// flag.Parse()
+	port := 80
 
 	// if tracing.IsTracingEnabled() {
 	// 	fmt.Println("consumer has tracing enabled")
@@ -98,7 +98,7 @@ func main() {
 	}
 
 	//set up server
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		fmt.Printf("[consumer] failed to listen: %v", err)
 	}

@@ -1,13 +1,14 @@
 use wasmtime::component::*;
 use wasmtime::{Config, Engine, Store};
-use wasmtime_wasi::preview2::{WasiCtx, WasiCtxBuilder, Table, WasiView};
 use wasmtime_wasi::preview2;
+use wasmtime_wasi::preview2::{Table, WasiCtx, WasiCtxBuilder, WasiView};
 
-use crate::exports::hello_world::HelloRequest;
+use crate::exports::chained_service::api::hello_world::HelloRequest;
 
 bindgen!({
-    path:"../producer/component/wit",
-    async: true
+    path:"../wit",
+    async: true,
+    world: "top-level",
 });
 
 struct MyState {
@@ -36,39 +37,24 @@ async fn main() -> wasmtime::Result<()> {
     config.wasm_component_model(true);
     config.async_support(true);
     let engine = Engine::new(&config)?;
-    let component = Component::from_file(&engine, "../producer/component/main-component.wasm")?;
+    //let component = Component::from_file(&engine, "../producer/component/main-component.wasm")?;
+    let component = Component::from_file(&engine, "../producer/component/composed.wasm")?;
 
     let mut linker = Linker::new(&engine);
 
     let mut table = Table::new();
-    //wasmtime_wasi::
-    let wasi = WasiCtxBuilder::new().inherit_stdio().set_args(&[""]).build(&mut table)?;
-
-    // preview2::wasi::filesystem::filesystem::add_to_linker(&mut linker, |x| x)?;
-    // preview2::wasi::io::streams::add_to_linker(&mut linker, |x| x)?;
-    // preview2::wasi::cli_base::environment::add_to_linker(&mut linker, |x| x)?;
-    // preview2::wasi::cli_base::preopens::add_to_linker(&mut linker, |x| x)?;
-    // preview2::wasi::cli_base::exit::add_to_linker(&mut linker, |x| x)?;
-    // preview2::wasi::cli_base::stdin::add_to_linker(&mut linker, |x| x)?;
-    // preview2::wasi::cli_base::stdout::add_to_linker(&mut linker, |x| x)?;
-    // preview2::wasi::cli_base::stderr::add_to_linker(&mut linker, |x| x)?;
-    // preview2::wasi::clocks::wall_clock::add_to_linker(&mut linker, |x| x)?;
-    // preview2::wasi::clocks::monotonic_clock::add_to_linker(&mut linker, |x| x)?;
+    let wasi = WasiCtxBuilder::new().inherit_stdio().build(&mut table)?;
 
     preview2::wasi::command::add_to_linker(&mut linker)?;
 
-    let mut store = Store::new(
-        &engine,
-        MyState {  table, wasi },
-    );
-    let (bindings, _) = ProducerInterface::instantiate_async(&mut store, &component, &linker).await?;
+    let mut store = Store::new(&engine, MyState { table, wasi });
+    let (bindings, _) =
+        TopLevel::instantiate_async(&mut store, &component, &linker).await?;
 
-    let interf = bindings.hello_world();
-    interf.call_test(&mut store).await?;
-    interf.call_init_component(&mut store).await?;
-
-    let arg = HelloRequest{name: &"foo"};
-    let res = interf.call_say_hello(&mut store, arg).await?;
+    let hello_world = bindings.chained_service_api_hello_world();
+    hello_world.call_init_component(&mut store).await?;
+    let arg = HelloRequest { name: &"foo" };
+    let res = hello_world.call_say_hello(&mut store, arg).await?;
 
     println!("{:?}", res);
 
