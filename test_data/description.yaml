@@ -1,0 +1,19 @@
+---
+dest-dir: output
+
+proto-files:
+  - name: helloworld
+    path: protos/helloworld.proto
+  - name: prodcon
+    path: protos/prodcon.proto
+
+functions:
+  - name: producer
+    language: go
+    path: producer
+    export: helloworld
+    import: prodcon
+  - name: consumer
+    language: go
+    path: consumer
+    export: prodcon
