@@ -26,7 +26,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io"
 	"net"
 	"os"
 
@@ -55,19 +54,6 @@ func (s *consumerServer) ConsumeByte(ctx context.Context, str *pb.ConsumeByteReq
 		log.Printf("[consumer] Consumed %d bytes\n", len(str.Value))
 	}
 	return &pb.ConsumeByteReply{Value: true}, nil
-}
-
-func (s *consumerServer) ConsumeStream(stream pb.ProducerConsumer_ConsumeStreamServer) error {
-	for {
-		str, err := stream.Recv()
-		if err == io.EOF {
-			return stream.SendAndClose(&pb.ConsumeByteReply{Value: true})
-		}
-		if err != nil {
-			return err
-		}
-		log.Printf("[consumer] Consumed string of length %d\n", len(str.Value))
-	}
 }
 
 func main() {

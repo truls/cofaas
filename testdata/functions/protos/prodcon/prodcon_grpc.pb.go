@@ -23,7 +23,6 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProducerConsumerClient interface {
 	ConsumeByte(ctx context.Context, in *ConsumeByteRequest, opts ...grpc.CallOption) (*ConsumeByteReply, error)
-	ConsumeStream(ctx context.Context, opts ...grpc.CallOption) (ProducerConsumer_ConsumeStreamClient, error)
 }
 
 type producerConsumerClient struct {
@@ -43,46 +42,11 @@ func (c *producerConsumerClient) ConsumeByte(ctx context.Context, in *ConsumeByt
 	return out, nil
 }
 
-func (c *producerConsumerClient) ConsumeStream(ctx context.Context, opts ...grpc.CallOption) (ProducerConsumer_ConsumeStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ProducerConsumer_ServiceDesc.Streams[0], "/prodcon.ProducerConsumer/ConsumeStream", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &producerConsumerConsumeStreamClient{stream}
-	return x, nil
-}
-
-type ProducerConsumer_ConsumeStreamClient interface {
-	Send(*ConsumeByteRequest) error
-	CloseAndRecv() (*ConsumeByteReply, error)
-	grpc.ClientStream
-}
-
-type producerConsumerConsumeStreamClient struct {
-	grpc.ClientStream
-}
-
-func (x *producerConsumerConsumeStreamClient) Send(m *ConsumeByteRequest) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *producerConsumerConsumeStreamClient) CloseAndRecv() (*ConsumeByteReply, error) {
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	m := new(ConsumeByteReply)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 // ProducerConsumerServer is the server API for ProducerConsumer service.
 // All implementations must embed UnimplementedProducerConsumerServer
 // for forward compatibility
 type ProducerConsumerServer interface {
 	ConsumeByte(context.Context, *ConsumeByteRequest) (*ConsumeByteReply, error)
-	ConsumeStream(ProducerConsumer_ConsumeStreamServer) error
 	mustEmbedUnimplementedProducerConsumerServer()
 }
 
@@ -92,9 +56,6 @@ type UnimplementedProducerConsumerServer struct {
 
 func (UnimplementedProducerConsumerServer) ConsumeByte(context.Context, *ConsumeByteRequest) (*ConsumeByteReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConsumeByte not implemented")
-}
-func (UnimplementedProducerConsumerServer) ConsumeStream(ProducerConsumer_ConsumeStreamServer) error {
-	return status.Errorf(codes.Unimplemented, "method ConsumeStream not implemented")
 }
 func (UnimplementedProducerConsumerServer) mustEmbedUnimplementedProducerConsumerServer() {}
 
@@ -127,32 +88,6 @@ func _ProducerConsumer_ConsumeByte_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ProducerConsumer_ConsumeStream_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(ProducerConsumerServer).ConsumeStream(&producerConsumerConsumeStreamServer{stream})
-}
-
-type ProducerConsumer_ConsumeStreamServer interface {
-	SendAndClose(*ConsumeByteReply) error
-	Recv() (*ConsumeByteRequest, error)
-	grpc.ServerStream
-}
-
-type producerConsumerConsumeStreamServer struct {
-	grpc.ServerStream
-}
-
-func (x *producerConsumerConsumeStreamServer) SendAndClose(m *ConsumeByteReply) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *producerConsumerConsumeStreamServer) Recv() (*ConsumeByteRequest, error) {
-	m := new(ConsumeByteRequest)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 // ProducerConsumer_ServiceDesc is the grpc.ServiceDesc for ProducerConsumer service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -165,12 +100,6 @@ var ProducerConsumer_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ProducerConsumer_ConsumeByte_Handler,
 		},
 	},
-	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "ConsumeStream",
-			Handler:       _ProducerConsumer_ConsumeStream_Handler,
-			ClientStreams: true,
-		},
-	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "prodcon.proto",
 }
