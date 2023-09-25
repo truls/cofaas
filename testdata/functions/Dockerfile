@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-FROM golang:1.20-bookworm AS builder
+FROM golang:1.21-bookworm AS builder
 
 WORKDIR /app
 # We use ARG and ENV to have a single Dockerfile for the all three programs.
