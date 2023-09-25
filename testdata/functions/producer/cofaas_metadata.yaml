@@ -1,0 +1,10 @@
+---
+proto-map:
+  - import: "cofaas_orig/protos/helloworld"
+    name: "helloworld"
+    path: "../../protos/helloworld.proto"
+    role: "export"
+  - import: "cofaas_orig/protos/prodcon"
+    name: "prodcon"
+    path: "../../protos/prodcon.proto"
+    role: "import"
