@@ -7,3 +7,6 @@
 [submodule "lang-support/go"]
 	path = lang-support/go
 	url = git@github.com:truls/cofaas-go.git
+[submodule "interface-gen"]
+	path = interface-gen
+	url = git@github.com:truls/cofaas-idl-transform.git
