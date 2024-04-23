@@ -7,7 +7,6 @@ use wasmtime::{Config, Engine, Store};
 use wasmtime_wasi::preview2;
 use wasmtime_wasi::preview2::{Table, WasiCtx, WasiCtxBuilder, WasiView};
 
-
 bindgen!({
     path:"../wit",
     async: true,
@@ -47,24 +46,34 @@ fn get_env_or_default(env: &str) -> String {
 }
 
 impl MyComponent {
-    pub async fn new(component: PathBuf) -> wasmtime::Result<MyComponent> {
+    pub async fn new(component: PathBuf, profiling: bool) -> wasmtime::Result<MyComponent> {
         let mut config = Config::new();
         config.wasm_component_model(true);
         config.async_support(true);
+        if profiling {
+            config.debug_info(true);
+            config.profiler(wasmtime::ProfilingStrategy::JitDump);
+        }
         let engine = Engine::new(&config)?;
 
+        //let component_file = fs::read(component)?;
+        //let compiled_component = engine.precompile_component(component_file.as_slice())?;
         let component = Component::from_file(&engine, component)?;
+        //let component = Component::from_binary(&engine, compiled_component.as_slice())?;
 
         let mut linker = Linker::new(&engine);
 
         let mut table = Table::new();
         let wasi = WasiCtxBuilder::new()
             .inherit_stdio()
-            .push_env("TRANSFER_SIZE_KB", get_env_or_default("TRANSFER_SIZE_KB"))
-            .push_env("REPEATS", get_env_or_default("REPEATS"))
+            .env("TRANSFER_SIZE_KB", get_env_or_default("TRANSFER_SIZE_KB"))
+            .env("REPEATS", get_env_or_default("REPEATS"))
+            .env("VERBOSE", get_env_or_default("VERBOSE"))
+            .env("MEASURE_LAT", get_env_or_default("MEASURE_LAT"))
+            .arg("-v")
             .build(&mut table)?;
 
-        preview2::wasi::command::add_to_linker(&mut linker)?;
+        preview2::command::add_to_linker(&mut linker)?;
 
         let mut store = Box::new(Store::new(&engine, MyState { table, wasi }));
 
