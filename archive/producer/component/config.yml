@@ -1,3 +1,0 @@
-dependencies:
-  "chained-service:api/prodcon": "../../consumer/component/main-component.wasm"
-  "chained-service:api/faas-component": "../../consumer/component/main-component.wasm"

@@ -1,4 +1,0 @@
-default world helloworld-exports {
-export hello-world: pkg.decls.hello-world
-export main: func()
-}
