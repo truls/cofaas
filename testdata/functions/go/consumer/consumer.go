@@ -24,7 +24,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"net"
 	"os"
@@ -42,10 +41,13 @@ const (
 	ELASTICACHE = "ELASTICACHE"
 )
 
-var verbose = flag.Bool("v", false, "Be verbose")
+//var verbose = flag.Bool("v", false, "Be verbose")
+
+var vv = false
+var verbose = &vv
 
 type consumerServer struct {
-	transferType   string
+	transferType string
 	pb.UnimplementedProducerConsumerServer
 }
 
@@ -53,13 +55,18 @@ func (s *consumerServer) ConsumeByte(ctx context.Context, str *pb.ConsumeByteReq
 	if *verbose {
 		log.Printf("[consumer] Consumed %d bytes\n", len(str.Value))
 	}
+	for i := 0; i < len(str.Value); i++ {
+		str.Value[i] = 'c'
+	}
 	return &pb.ConsumeByteReply{Value: true}, nil
 }
 
 func main() {
 	//flagAddress := flag.String("addr", "consumer.default.192.168.1.240.sslip.io", "Server IP address")
-	port := flag.Int("ps", 80, "Port")
-	flag.Parse()
+	// port := flag.Int("ps", 80, "Port")
+	// flag.Parse()
+	pv := 3030
+	port := &pv
 
 	log.SetFormatter(&log.TextFormatter{
 		TimestampFormat: ctrdlog.RFC3339NanoFixed,
@@ -67,7 +74,7 @@ func main() {
 	})
 	log.SetOutput(os.Stdout)
 
-		log.Println("consumer has tracing DISABLED")
+	log.Println("consumer has tracing DISABLED")
 
 	transferType, ok := os.LookupEnv("TRANSFER_TYPE")
 	if !ok {

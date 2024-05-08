@@ -24,7 +24,8 @@ package main
 
 import (
 	"context"
-	"flag"
+	"time"
+	//"flag"
 	"fmt"
 	"math/rand"
 	"net"
@@ -40,15 +41,16 @@ import (
 	pb_client "cofaas_orig/protos/prodcon"
 
 	pb "cofaas_orig/protos/helloworld"
+
 	"google.golang.org/grpc"
 )
 
 type producerServer struct {
-	consumerAddr   string
-	consumerPort   int
-	payloadData    []byte
-	transferType   string
-	randomStr      string
+	consumerAddr string
+	consumerPort int
+	payloadData  []byte
+	transferType string
+	randomStr    string
 	pb.UnimplementedGreeterServer
 }
 
@@ -59,8 +61,18 @@ const (
 	ELASTICACHE = "ELASTICACHE"
 )
 
-var verbose = flag.Bool("v", false, "Be verbose")
-//var repeats = flag.Int("r", 1, "Repeat message");
+// var verbose = flag.Bool("v", false, "Be verbose")
+// var repeats = flag.Int("r", 1, "Repeat message");
+var v = false
+var verbose = &v
+
+var repetitions = 1
+
+var measure_time = false
+var timings = []float64{}
+
+//var
+
 func getGRPCclient(addr string) (pb_client.ProducerConsumerClient, *grpc.ClientConn) {
 	// establish a connection
 	var conn *grpc.ClientConn
@@ -77,23 +89,50 @@ func (ps *producerServer) SayHello(ctx context.Context, req *pb.HelloRequest) (_
 	client, conn := getGRPCclient(addr)
 	defer conn.Close()
 	payloadToSend := ps.payloadData
-	for i := 1; i <= 1; i++ {
-		ack, err := client.ConsumeByte(ctx, &pb_client.ConsumeByteRequest{Value: payloadToSend})
-		if err != nil {
-			log.Fatalf("[producer] client error in string consumption: %s", err)
+	if measure_time {
+		start := time.Now()
+		for i := 1; i <= repetitions; i++ {
+			ack, err := client.ConsumeByte(ctx, &pb_client.ConsumeByteRequest{Value: payloadToSend})
+			if err != nil {
+				log.Fatalf("[producer] client error in string consumption: %s", err)
+			}
+			if *verbose {
+				log.Printf("[producer] (single) Ack: %v\n", ack.Value)
+			}
 		}
+		duration := time.Since(start)
+		latency := duration.Microseconds() / int64(repetitions)
+
 		if *verbose {
-			log.Printf("[producer] (single) Ack: %v\n", ack.Value)
+			log.Printf("[producer] Returing latency %d", latency)
 		}
+
+		return &pb.HelloReply{Message: fmt.Sprintf("%d", latency)}, err
+	} else {
+		for i := 1; i <= repetitions; i++ {
+			ack, err := client.ConsumeByte(ctx, &pb_client.ConsumeByteRequest{Value: payloadToSend})
+			if err != nil {
+				log.Fatalf("[producer] client error in string consumption: %s", err)
+			}
+			if *verbose {
+				log.Printf("[producer] (single) Ack: %v\n", ack.Value)
+			}
+		}
+		return &pb.HelloReply{Message: "Success"}, err
 	}
-	return &pb.HelloReply{Message: "Success"}, err
 }
 
 func main() {
-	flagAddress := flag.String("addr", "consumer.default.192.168.1.240.sslip.io", "Server IP address")
-	flagClientPort := flag.Int("pc", 80, "Client Port")
-	flagServerPort := flag.Int("ps", 80, "Server Port")
-	flag.Parse()
+	// flagAddress := flag.String("addr", "consumer.default.192.168.1.240.sslip.io", "Server IP address")
+	// flagClientPort := flag.Int("pc", 80, "Client Port")
+	// flagServerPort := flag.Int("ps", 80, "Server Port")
+	// flag.Parse()
+	flagAddressV := "consumer"
+	flagAddress := &flagAddressV
+	flagClientPortV := 3030
+	flagServerPortV := 3031
+	flagClientPort := &flagClientPortV
+	flagServerPort := &flagServerPortV
 
 	log.SetFormatter(&log.TextFormatter{
 		TimestampFormat: ctrdlog.RFC3339NanoFixed,
@@ -118,13 +157,37 @@ func main() {
 	log.Infof("[producer] transfering via %s", transferType)
 	ps.transferType = transferType
 
-	transferSizeKB := 1//4095
+	transferSizeKB := 1 //4095
 	if value, ok := os.LookupEnv("TRANSFER_SIZE_KB"); ok {
 		if intValue, err := strconv.Atoi(value); err == nil {
 			transferSizeKB = intValue
 		} else {
 			log.Infof("invalid TRANSFER_SIZE_KB: %s, using default %d", value, transferSizeKB)
 		}
+	}
+
+	if value, ok := os.LookupEnv("REPEATS"); ok {
+		if intValue, err := strconv.Atoi(value); err == nil {
+			repetitions = intValue
+		} else {
+			log.Infof("invalid REPEATS: %s, using default %d", value, repetitions)
+		}
+	}
+
+	if value, ok := os.LookupEnv("MEASURE_LAT"); ok {
+		if value == "true" {
+			log.Info("RUnning in latency measurement mode")
+			measure_time = true
+			timings = make([]float64, repetitions)
+		}
+	} else {
+		log.Infof("invalid MEASURE_LAT: %s, using default %d", value, false)
+	}
+
+	if value, ok := os.LookupEnv("VERBOSE"); ok {
+		v = value == "true"
+	} else {
+		log.Infof("invalid VERBOSE: %s, using default %b", value, false)
 	}
 
 	// 4194304 bytes is the limit by gRPC
@@ -135,6 +198,7 @@ func main() {
 	ps.randomStr = os.Getenv("HOSTNAME")
 
 	log.Infof("sending %d bytes to consumer", len(payloadData))
+	log.Infof("repeating message %d times", repetitions)
 	ps.payloadData = payloadData
 	pb.RegisterGreeterServer(grpcServer, &ps)
 	reflection.Register(grpcServer)

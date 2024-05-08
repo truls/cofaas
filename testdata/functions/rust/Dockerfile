@@ -20,30 +20,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-version: "3.7"
+FROM rust:1.72-slim-bookworm AS builder
 
-services:
-    consumer:
-        image: cofaas/consumer
-        volumes:
-            - log-volume:/log
-        command:
-            - -ps=3030
+WORKDIR /app
+# We use ARG and ENV to have a single Dockerfile for the all three programs.
+# https://vsupalov.com/docker-build-pass-environment-variables/
+ARG target_arg
+ENV target=$target_arg
+RUN mkdir /log
+RUN apt-get update && apt-get install -y protobuf-compiler
+COPY . .
+# Using buidkit secrets to pass sensitive info during the build.
+# https://pythonspeed.com/articles/docker-build-secrets/
+RUN cd ${target} && cargo build --release
 
-    producer:
-        image: cofaas/producer
-        ports:
-            - "3031:3031"
-        volumes:
-            - log-volume:/log
-        command:
-            - -addr=consumer
-            - -ps=3031
-            - -pc=3030
-        environment:
-            - TRANSFER_SIZE_KB=10
-        depends_on:
-            - consumer
-
-volumes:
-    log-volume:
+FROM debian:bookworm-slim
+WORKDIR /app
+ARG target_arg
+ENV target=$target_arg
+COPY --from=builder /app/${target_arg}/target/release/${target} /app/exe
+ENTRYPOINT [ "/app/exe" ]

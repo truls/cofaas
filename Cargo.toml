@@ -10,3 +10,4 @@ anyhow = "1.0.72"
 clap = { version = "4.3.21", features = ["derive"] }
 serde = { version = "1.0.183", features = ["derive"] }
 serde_yaml = "0.9.25"
+wit-bindgen = { git = "https://github.com/bytecodealliance/wit-bindgen", version = "0.12.0" }

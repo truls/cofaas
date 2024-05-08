@@ -2,5 +2,5 @@
 proto-map:
   - import: "cofaas_orig/protos/prodcon"
     name: "prodcon"
-    path: "../../protos/prodcon.proto"
+    path: "../../../protos/prodcon.proto"
     role: "export"

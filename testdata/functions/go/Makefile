@@ -26,8 +26,8 @@ all-image: producer-image consumer-image
 
 all-image-push: producer-image-push consumer-image-push driver-image-push
 
-helloworld_protos := protos/helloworld/helloworld.pb.go protos/helloworld/helloworld_grpc.pb.go
-prodcon_protos := protos/prodcon/prodcon.pb.go protos/prodcon/prodcon_grpc.pb.go
+helloworld_protos := ../protos/helloworld/helloworld.pb.go ../protos/helloworld/helloworld_grpc.pb.go
+prodcon_protos := ../protos/prodcon/prodcon.pb.go ../protos/prodcon/prodcon_grpc.pb.go
 protos: $(helloworld_protos) $(prodcon_protos)
 
 clean:

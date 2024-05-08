@@ -1,0 +1,15 @@
+[package]
+name = "producer"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+prost = "0.12.1"
+tokio = { version = "1.32.0", features = ["full"] }
+tonic = "0.10.2"
+
+
+[build-dependencies]
+tonic-build = "0.9.2"

@@ -31,6 +31,7 @@ pub struct AppDescription {
     dest_dir: PathBuf,
     proto_files: Vec<ProtoFile>,
     functions: Vec<Function>,
+    entry_point: String
 }
 
 impl AppDescription {
