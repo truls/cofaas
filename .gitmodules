@@ -10,3 +10,6 @@
 [submodule "interface-gen"]
 	path = interface-gen
 	url = git@github.com:truls/cofaas-idl-transform.git
+[submodule "deps/wasm-tools"]
+	path = deps/wasm-tools
+	url = git@github.com:bytecodealliance/wasm-tools
